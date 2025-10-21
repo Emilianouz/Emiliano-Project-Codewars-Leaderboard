@@ -15,59 +15,107 @@ const tableBody = document.querySelector("#leaderboard tbody");
 const tableContainer = document.getElementById("table-container");
 let inputData;
 let usersData;
-let listOfLanguages = ['Javascript','VisualBasic','Pascal','COBOL'];
-let infoUsers = [
-                ['CodeYourFuture','TheFounders',837,'COBOL'],
-                ['Molotov','Frijoleros',636,'Pascal'],
-                ['LosPrisioineros','TrenAlSur',37,'VisualBasic']
-              ];
+let listOfLanguages = [];
+let infoUsers = [];
+let utilUserData = []
+
 window.onload = function (){
 
-  submitButton.addEventListener("click", function (e) {
-    e.preventDefault();
-    // limpiar datos tbody.innerHTML = '' y la lista tambien, hid los hidden
-    inputData = inputUsers.value.trim().split(',').map(name => name.trim().replace(/\s+/g, '')).filter(Boolean);
-    getUsersData();
-    // functions that load table and list, and render
-    fillLanguageSelector();
+  submitButton.addEventListener("click", handleButtonClick);
+
+  languageSelect.addEventListener("change",function(){
+    tableBody.innerHTML = "";
+    const language = languageSelect.value;
+    listInfoUsersByLanguage(utilUserData,language)
     renderTableRanking(infoUsers);
   });
-
-
 };
+
+async function handleButtonClick(e) {
+  e.preventDefault();
+  inputData = inputUsers.value.trim().split(',').map(name => name.trim().replace(/\s+/g, '')).filter(Boolean);
+  try {
+    await getUsersData();
+    filterUtilUsersData();
+    renderLanguageSelector(listOfLanguages);
+    renderTableRanking(infoUsers);
+  } catch (err) {
+    console.error("Error fetching users:", err.message); // VOLVER GENERAL
+  } 
+}
 
 function userUrl(userName){
   return `https://www.codewars.com/api/v1/users/${userName}`;
 }
 
-  async function fetchUser(userName) {
+async function fetchUser(userName) {
     const res = await fetch(userUrl(userName));
     if (!res.ok){
-      //const text = await res.text().catch(()=>res.statusText);
-      throw new  Error(`${res.status} ${res.statusText} - ${text}`)
+      //const text = await res.text().catch(()=>res.statusText); - ${text}`
+      throw new  Error(`${res.status} ${res.statusText}` )
     }
     const parResponse = await res.json();
     return parResponse;
-  }
+}
  
 async function getUsersData(){
     usersData = await Promise.all(inputData.map(fetchUser));
     /**Promise.all() takes an array of promises and waits for all of them to finish.
 If all promises resolve, it returns a new promise that resolves to an array of results. */
-      console.log(usersData)
+     return usersData;
 }
 
+function filterUtilUsersData() {
+  if (!Array.isArray(usersData)) {
+    console.error("usersData is undefined or not an array");
+    return;
+  }
+  
+  usersData.forEach(user => {
+    const pairLanguageScore = Object.entries(user.ranks.languages)
+    .map(([lang,data])=>[lang,data.score]);
+    
+    utilUserData.push({
+      username: user.username,
+      clan: user.clan,
+      overallScore: user.ranks.overall.score,
+      scores:pairLanguageScore
+    });
+  });
+  listLanguages(utilUserData);
+  listInfoUsers(utilUserData);
+};
+// fill variable listOfLanguages from utilUserData
+function listLanguages(utilUserData){
+  utilUserData.forEach(user => {
+    user.scores.forEach(([language,score])=>{
+      if(!listOfLanguages.includes(language)){
+      listOfLanguages.push(language);
+      }
+    });
+  });
+}
+// fill infoUsers from utilUserData
+function listInfoUsers(utilUserData){
+  utilUserData.forEach(user =>{
+    infoUsers.push([user.username,user.clan,user.overallScore])
+  })
+  infoUsers.sort((a,b)=> b[2] - a[2]);
+}
+// fill infoUsers filtered from language 
+function listInfoUsersByLanguage(utilUserData,language){
+  infoUsers = [];
+  utilUserData.forEach(user => {
+    const languageScorePair = user.scores.find(([lang])=> lang === language);
+    if (languageScorePair) {
+      const score = languageScorePair[1];
+      infoUsers.push([user.username,user.clan,score]);
+    }
+  });
+  infoUsers.sort((a,b)=> b[2] - a[2]);
+}
 
-//D get the values from the input - brush it up input 
-// build arrays ORDER entrega filteredRanking ORDENADOS y FILTRADOS por lenguage
-
-//D fetch from input
-//get the full information, for users
-// organize info: listOfLanguages, infoUsers
-
-
-//D fill select
-function fillLanguageSelector(){
+function renderLanguageSelector(listOfLanguages){
   languageSelect.innerHTML = "";
   for(const language of listOfLanguages){
     const option = document.createElement("option");
@@ -77,8 +125,8 @@ function fillLanguageSelector(){
   }
   controls.hidden = false;
 }
-// fill table TIENE QUE RECIBIRLOS YA FILTRADOS(POR LENGUAGE) Y ORDENADOS
-function renderTableRanking(filteredRanking){ // add in first line highlight
+
+function renderTableRanking(filteredRanking){ // TO-DO:add in first line highlight
   tableContainer.hidden = false;
 
   filteredRanking.forEach((user) => {
@@ -101,4 +149,16 @@ function renderTableRanking(filteredRanking){ // add in first line highlight
   });
 }
 
-// filter with select
+// Just4FunCoder,uttumuttu,B1ts,SallyMcGrath,40thieves,Kacarott,K01egA,CodeYourFuture
+
+/* 
+CHECK: BRUSH UP ON
+
+MANAGE ERROR FETCHING
+
+TEST
+
+CSS
+
+RUBRIC
+*/
