@@ -6,8 +6,43 @@
   <title>Codewars leaderboard</title>
 </head>
 <body>
-  <p>https://github.com/Emilianouz/Emiliano-Project-Codewars-Leaderboard</p>
-  <p>Codewars leaderboard Project</p>
+  <main class="container" id="main">
+    <h1>Codewars Leaderboard</h1>
+
+    <form id="user-form" aria-describedby="form-desc">
+      <label for="user-input">Enter Codewars usernames (comma separated):</label>
+      <input id="user-input" name="users" type="text" inputmode="text" autocomplete="off"
+             placeholder="e.g.SallyMcGrath,40thieves,CodeYourFuture"
+             aria-label="Input Codewars usernames" />
+      <button type="submit" id="submit-btn">Search</button>
+    </form>
+
+    <div id="status" aria-live="polite" class="status" role="status">No users entered.</div>
+
+    <div id="controls" hidden>
+      <label for="language-select">Choose Language:</label>
+      <select id="language-select" aria-label="language select"></select>
+    </div>
+
+    <div id="table-container" hidden>
+      <table id="leaderboard" aria-describedby="table-desc">
+        <caption id="table-desc">Leaderboard ranking</caption>
+        <thead>
+          <tr>
+            <th scope="col">Username</th>
+            <th scope="col">Clan</th>
+            <th scope="col">Score</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+
+    <footer>
+      <p>2025 CodeYourFuture / Piscine_Oct2025 / Emiliano Uruena.</p>
+    </footer>
+  </main>
+
 </body>
 
 <script src="index.mjs" type="module"></script>
