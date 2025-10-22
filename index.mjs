@@ -8,7 +8,7 @@
 // }
 const inputUsers = document.getElementById("user-input");
 const submitButton = document.getElementById("submit-btn");
-const status = document.getElementById("status");
+const statusMessage = document.getElementById("status");
 const languageSelect = document.getElementById("language-select");
 const controls = document.getElementById("controls");
 const tableBody = document.querySelector("#leaderboard tbody");
@@ -33,14 +33,17 @@ window.onload = function (){
 
 async function handleButtonClick(e) {
   e.preventDefault();
-  inputData = inputUsers.value.trim().split(',').map(name => name.trim().replace(/\s+/g, '')).filter(Boolean);
+  tableBody.innerHTML = "";
+  inputData = inputUsers.value.trim().split(',')
+    .map(name => name.trim().replace(/\s+/g, '')).filter(Boolean);
   try {
     await getUsersData();
     filterUtilUsersData();
     renderLanguageSelector(listOfLanguages);
     renderTableRanking(infoUsers);
+    statusMessage.textContent =  `Data loaded.\n` + statusMessage.textContent;
   } catch (err) {
-    console.error("Error fetching users:", err.message); // VOLVER GENERAL
+    statusMessage.textContent = `Error fetching users: ${err.message}`;
   } 
 }
 
@@ -49,28 +52,56 @@ function userUrl(userName){
 }
 
 async function fetchUser(userName) {
+  try {
     const res = await fetch(userUrl(userName));
-    if (!res.ok){
-      //const text = await res.text().catch(()=>res.statusText); - ${text}`
-      throw new  Error(`${res.status} ${res.statusText}` )
+
+    // Handle HTTP errors
+    if (!res.ok) {
+      if (res.status === 404) {
+        throw new Error(`User not found.`);
+      } else {
+        throw new Error(`Error fetching ${userName}: ${res.status} ${res.statusText}`);
+      }
     }
-    const parResponse = await res.json();
-    return parResponse;
-}
+
+    const parsedResponse = await res.json();
+    return parsedResponse;
+  } catch (err){
+    throw new Error(`Failed to fetch data for "${userName}": ${err.message}`);
+  }
+};
  
 async function getUsersData(){
-    usersData = await Promise.all(inputData.map(fetchUser));
-    /**Promise.all() takes an array of promises and waits for all of them to finish.
-If all promises resolve, it returns a new promise that resolves to an array of results. */
-     return usersData;
+  const results = await Promise.allSettled(inputData.map(fetchUser));
+
+  const successful = results
+    .filter(r => r.status === "fulfilled")
+    .map(r => r.value);
+
+  const failed = results
+    .filter(r => r.status === "rejected")
+    .map(r => r.reason.message);
+
+    // It shows users if fail
+  if (failed.length > 0){
+    statusMessage.textContent = `Some users could not be fetched:\n${failed.join("\n")}`;
+  } else {
+    statusMessage.textContent = "";
+  }
+
+  if (successful.length === 0){
+    throw new Error("No valid users found.")
+  }
+  usersData = successful;
+  return usersData;
 }
 
 function filterUtilUsersData() {
   if (!Array.isArray(usersData)) {
-    console.error("usersData is undefined or not an array");
+    statusMessage = "UsersData is undefined or not an array"
     return;
   }
-  
+  utilUserData = [];
   usersData.forEach(user => {
     const pairLanguageScore = Object.entries(user.ranks.languages)
     .map(([lang,data])=>[lang,data.score]);
@@ -87,6 +118,7 @@ function filterUtilUsersData() {
 };
 // fill variable listOfLanguages from utilUserData
 function listLanguages(utilUserData){
+  listOfLanguages = [];
   utilUserData.forEach(user => {
     user.scores.forEach(([language,score])=>{
       if(!listOfLanguages.includes(language)){
@@ -97,6 +129,7 @@ function listLanguages(utilUserData){
 }
 // fill infoUsers from utilUserData
 function listInfoUsers(utilUserData){
+  infoUsers = [];
   utilUserData.forEach(user =>{
     infoUsers.push([user.username,user.clan,user.overallScore])
   })
@@ -152,13 +185,15 @@ function renderTableRanking(filteredRanking){ // TO-DO:add in first line highlig
 // Just4FunCoder,uttumuttu,B1ts,SallyMcGrath,40thieves,Kacarott,K01egA,CodeYourFuture
 
 /* 
-CHECK: BRUSH UP ON
+CHECK: BRUSH UP ON      DONE
 
-MANAGE ERROR FETCHING
+MANAGE ERROR FETCHING   DONE
 
 TEST
 
 CSS
+
+ACCESSIBILITY
 
 RUBRIC
 */
