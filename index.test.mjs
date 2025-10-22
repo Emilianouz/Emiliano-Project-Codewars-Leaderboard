@@ -31,3 +31,6 @@ test("mocks a fetch function", async () => {
   // the nock configuration.
   assert(scope.isDone() === true, "No matching fetch request has been made");
 });
+
+//userUrl
+//fetchUser
