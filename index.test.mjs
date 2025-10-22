@@ -33,4 +33,5 @@ test("mocks a fetch function", async () => {
 });
 
 //userUrl
-//fetchUser
+
+// Test fetchUser from scripts.mjs
