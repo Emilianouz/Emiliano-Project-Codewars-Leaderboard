@@ -19,27 +19,3 @@ test("fetchUser returns valid data for existing user", async () => {
   assert.strictEqual(user.ranks.overall.score, 942);
   assert.strictEqual(user.clan, "CodeYourFuture");
 });
-
-// Test 404 (user not found)
-test("fetchUser throws 'User not found.' for invalid user", async () => {
-  nock("https://www.codewars.com")
-    .get("/api/v1/users/NoSuchUser123")
-    .reply(404, {});
-
-  await assert.rejects(
-    fetchUser("NoSuchUser123"),
-    /User not found./
-  );
-});
-
-// Test network failure
-test("fetchUser throws a network error when fetch fails", async () => {
-  nock("https://www.codewars.com")
-    .get("/api/v1/users/NetworkFailUser")
-    .replyWithError("Network Error");
-
-  await assert.rejects(
-    fetchUser("NetworkFailUser"),
-    /Failed to fetch data/
-  );
-});

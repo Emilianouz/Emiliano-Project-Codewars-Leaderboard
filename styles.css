@@ -97,10 +97,6 @@ th {
   background-color: #f2f2f2;
 }
 
-tr:nth-child(even) {
-  background-color: #fafafa;
-}
-
 tbody tr:first-child {
   background-color: #e3f7e3;
   font-weight: bold;
