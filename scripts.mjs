@@ -145,7 +145,7 @@ function renderTableRanking(filteredRanking){
     tdUser.textContent = myUser;
     tdUser.scope = 'row';
     const tdClan = document.createElement('td');
-    tdClan.textContent = myClan; // Could be ''
+    tdClan.textContent = myClan; 
     const tdScore = document.createElement('td');
     tdScore.textContent = String(myScore);
     tr.appendChild(tdUser);
